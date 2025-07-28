@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Groczy</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Favicon -->
+    <link rel="icon" href="images/logo.png" type="image/png">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar py-2 d-none d-lg-block">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <span><i class="fas fa-phone me-2"></i> +91 8882611733</span>
+                    <span class="ms-4"><i class="fas fa-envelope me-2"></i> support@groczy.in</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="account.html" class="text-white"><i class="fas fa-user me-2"></i>My Account</a>
+                    <a href="#" class="text-white ms-3" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt me-2"></i>Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky-top bg-white shadow-sm">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="images/logo.png" alt="Groczy" height="40">
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" href="index.html">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="about.html">About Us</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                    Shop
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Fruits</a></li>
+                                    <li><a class="dropdown-item" href="#">Vegetables</a></li>
+                                    <li><a class="dropdown-item" href="#">Dairy</a></li>
+                                    <li><a class="dropdown-item" href="#">Groceries</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="blog.html">Blog</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="contact.html">Contact</a>
+                            </li>
+                        </ul>
+                        <div class="d-flex">
+                            <div class="input-group me-3">
+                                <input type="text" class="form-control" placeholder="Search products...">
+                                <button class="btn btn-success" type="button"><i class="fas fa-search"></i></button>
+                            </div>
+                            <a href="cart.html" class="btn btn-outline-success position-relative me-2">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    3
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header py-5 bg-light">
+        <div class="container text-center">
+            <h1>Our Blog</h1>
+            <nav aria-label="breadcrumb" class="d-flex justify-content-center">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                    <li class="breadcrumb-item active">Blog</li>
+                </ol>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Blog Content -->
+    <section class="blog-content py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Blog Post 1 -->
+                    <article class="blog-post mb-5">
+                        <div class="post-thumb mb-4">
+                            <img src="images/blog1.jpg" alt="Blog Post" class="img-fluid rounded">
+                        </div>
+                        <div class="post-meta mb-3">
+                            <span class="post-date me-3"><i class="far fa-calendar-alt me-2"></i>May 15, 2023</span>
+                            <span class="post-author"><i class="far fa-user me-2"></i>By Admin</span>
+                        </div>
+                        <h2 class="post-title mb-3"><a href="blog/organic-benefits.html" class="text-decoration-none">10 Benefits of Eating Organic Fruits and Vegetables</a></h2>
+                        <div class="post-excerpt mb-4">
+                            <p>Organic fruits and vegetables are grown without the use of synthetic pesticides, genetically modified organisms (GMOs), or petroleum-based fertilizers. Choosing organic can have significant benefits for your health, the environment, and even the taste of your food...</p>
+                        </div>
+                        <a href="blog/organic-benefits.html" class="btn btn-outline-success">Read More</a>
+                    </article>
+                    
+                    <!-- Blog Post 2 -->
+                    <article class="blog-post mb-5">
+                        <div class="post-thumb mb-4">
+                            <img src="images/blog2.jpg" alt="Blog Post" class="img-fluid rounded">
+                        </div>
+                        <div class="post-meta mb-3">
+                            <span class="post-date me-3"><i class="far fa-calendar-alt me-2"></i>May 10, 2023</span>
+                            <span class="post-author"><i class="far fa-user me-2"></i>By Admin</span>
+                        </div>
+                        <h2 class="post-title mb-3"><a href="blog/store-produce.html" class="text-decoration-none">How to Store Fresh Produce to Make It Last Longer</a></h2>
+                        <div class="post-excerpt mb-4">
+                            <p>Nothing is more frustrating than buying fresh fruits and vegetables only to have them spoil before you can use them. Proper storage is key to extending the life of your produce. Here are some tips to help your fruits and vegetables stay fresh longer...</p>
+                        </div>
+                        <a href="blog/store-produce.html" class="btn btn-outline-success">Read More</a>
+                    </article>
+                    
+                    <!-- Blog Post 3 -->
+                    <article class="blog-post mb-5">
+                        <div class="post-thumb mb-4">
+                            <img src="images/blog3.jpg" alt="Blog Post" class="img-fluid rounded">
+                        </div>
+                        <div class="post-meta mb-3">
+                            <span class="post-date me-3"><i class="far fa-calendar-alt me-2"></i>May 5, 2023</span>
+                            <span class="post-author"><i class="far fa-user me-2"></i>By Admin</span>
+                        </div>
+                        <h2 class="post-title mb-3"><a href="blog/seasonal-fruits.html" class="text-decoration-none">Seasonal Fruits and Vegetables: What to Buy in Summer</a></h2>
+                        <div class="post-excerpt mb-4">
+                            <p>Eating seasonally means enjoying fruits and vegetables at their peak of freshness and flavor. Summer brings an abundance of delicious produce that's perfect for light, refreshing meals. Here's our guide to the best seasonal fruits and vegetables to enjoy this summer...</p>
+                        </div>
+                        <a href="blog/seasonal-fruits.html" class="btn btn-outline-success">Read More</a>
+                    </article>
+                    
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Previous</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <div class="blog-sidebar">
+                        <!-- Search Widget -->
+                        <div class="sidebar-widget mb-5">
+                            <h4 class="widget-title mb-4">Search</h4>
+                            <form>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search...">
+                                    <button class="btn btn-success" type="submit"><i class="fas fa-search"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Categories Widget -->
+                        <div class="sidebar-widget mb-5">
+                            <h4 class="widget-title mb-4">Categories</h4>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="#">Fruits</a>
+                                    <span class="badge bg-success rounded-pill">14</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="#">Vegetables</a>
+                                    <span class="badge bg-success rounded-pill">12</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="#">Healthy Eating</a>
+                                    <span class="badge bg-success rounded-pill">8</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="#">Recipes</a>
+                                    <span class="badge bg-success rounded-pill">5</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="#">Organic Farming</a>
+                                    <span class="badge bg-success rounded-pill">3</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Recent Posts Widget -->
+                        <div class="sidebar-widget mb-5">
+                            <h4 class="widget-title mb-4">Recent Posts</h4>
+                            <div class="recent-post mb-3">
+                                <div class="recent-post-thumb me-3">
+                                    <img src="images/blog-thumb1.jpg" alt="Post" width="60">
+                                </div>
+                                <div class="recent-post-content">
+                                    <h6><a href="blog/organic-benefits.html">10 Benefits of Eating Organic</a></h6>
+                                    <span class="post-date small">May 15, 2023</span>
+                                </div>
+                            </div>
+                            <div class="recent-post mb-3">
+                                <div class="recent-post-thumb me-3">
+                                    <img src="images/blog-thumb2.jpg" alt="Post" width="60">
+                                </div>
+                                <div class="recent-post-content">
+                                    <h6><a href="blog/store-produce.html">Storing Fresh Produce</a></h6>
+                                    <span class="post-date small">May 10, 2023</span>
+                                </div>
+                            </div>
+                            <div class="recent-post">
+                                <div class="recent-post-thumb me-3">
+                                    <img src="images/blog-thumb3.jpg" alt="Post" width="60">
+                                </div>
+                                <div class="recent-post-content">
+                                    <h6><a href="blog/seasonal-fruits.html">Seasonal Summer Produce</a></h6>
+                                    <span class="post-date small">May 5, 2023</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tags Widget -->
+                        <div class="sidebar-widget">
+                            <h4 class="widget-title mb-4">Tags</h4>
+                            <div class="tags">
+                                <a href="#" class="tag">Fruits</a>
+                                <a href="#" class="tag">Vegetables</a>
+                                <a href="#" class="tag">Organic</a>
+                                <a href="#" class="tag">Healthy</a>
+                                <a href="#" class="tag">Recipes</a>
+                                <a href="#" class="tag">Seasonal</a>
+                                <a href="#" class="tag">Nutrition</a>
+                                <a href="#" class="tag">Farm</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter py-5 bg-success text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h3>Subscribe to Our Newsletter</h3>
+                    <p class="mb-md-0">Get updates on special offers and new products</p>
+                </div>
+                <div class="col-md-6">
+                    <form class="d-flex" action="https://api.web3forms.com/submit" method="POST">
+                        <input type="hidden" name="access_key" value="da20294f-de25-4418-a99e-100b6e17be8c">
+                        <input type="email" class="form-control" name="email" placeholder="Your email address" required>
+                        <button type="submit" class="btn btn-light ms-2">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white pt-5 pb-3">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <img src="images/logo.png" alt="Groczy" height="40" class="mb-3">
+                    <p>Groczy delivers fresh groceries, fruits and vegetables to your doorstep. Order online and get delivery in minutes.</p>
+                    <div class="social-icons mt-4">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <h5 class="mb-4">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html" class="text-white">Home</a></li>
+                        <li class="mb-2"><a href="about.html" class="text-white">About Us</a></li>
+                        <li class="mb-2"><a href="blog.html" class="text-white">Blog</a></li>
+                        <li class="mb-2"><a href="contact.html" class="text-white">Contact</a></li>
+                        <li class="mb-2"><a href="account.html" class="text-white">My Account</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <h5 class="mb-4">Customer Service</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="faq.html" class="text-white">FAQs</a></li>
+                        <li class="mb-2"><a href="terms.html" class="text-white">Terms of Service</a></li>
+                        <li class="mb-2"><a href="privacy.html" class="text-white">Privacy Policy</a></li>
+                        <li class="mb-2"><a href="security.html" class="text-white">Security</a></li>
+                        <li class="mb-2"><a href="#" class="text-white">Returns Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-4">
+                    <h5 class="mb-4">Contact Info</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-3"><i class="fas fa-map-marker-alt me-2"></i> Aitmadpur, Sector 33, Faridabad, Haryana 121003</li>
+                        <li class="mb-3"><i class="fas fa-phone-alt me-2"></i> +91 8882611733</li>
+                        <li class="mb-3"><i class="fas fa-envelope me-2"></i> support@groczy.in</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="text-center text-white small mt-4">“Groczy” is owned and operated by Bhagat Developer and is a service provider for groceries, fresh vegetables, fruits, and related products. Groczy is not related, linked, or associated in any manner whatsoever with any other business or platform operating under a similar name.</p>
+            <hr class="my-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-md-0">&copy; 2025 Groczy. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <img src="images/payment-methods.png" alt="Payment Methods" class="img-fluid payment-methods-img">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login to Your Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="loginEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Login</button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <p>Don't have an account? <a href="account.html" class="text-success">Register</a></p>
+                        <a href="#" class="text-success">Forgot password?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
