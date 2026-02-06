@@ -410,3 +410,73 @@ function renderCategories(categories) {
 document.addEventListener('DOMContentLoaded', function() {
     loadCategoriesFromFirebase();
 });
+
+// Function to filter products by category
+function filterProductsByCategory(categoryId, categoryName) {
+    console.log('Filtering products for category:', categoryName);
+    
+    const productsSection = document.querySelector('.featured-products');
+    if (productsSection) {
+        productsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    const productsHeading = document.querySelector('.featured-products h2');
+    if (productsHeading) {
+        productsHeading.textContent = categoryName + ' Products';
+    }
+    
+    const productsRef = db.collection("products").where("categoryId", "==", categoryId);
+    
+    productsRef.get().then(snapshot => {
+        const products = [];
+        snapshot.forEach(doc => {
+            products.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        if (products.length > 0) {
+            renderFilteredProducts(products);
+        } else {
+            const productContainer = document.querySelector('.featured-products .row.g-4');
+            if (productContainer) {
+                productContainer.innerHTML = '<div class="col-12 text-center"><p>No products found in this category.</p></div>';
+            }
+        }
+    });
+}
+
+function renderFilteredProducts(products) {
+    const productContainer = document.querySelector('.featured-products .row.g-4');
+    if (!productContainer) return;
+    
+    productContainer.innerHTML = '';
+    
+    products.forEach(product => {
+        const discount = product.fullPrice && product.salePrice ? 
+            Math.round(((product.fullPrice - product.salePrice) / product.fullPrice) * 100) : 0;
+        
+        const productCard = `
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="product-card p-3 shadow-sm rounded-3 bg-white">
+                    ${discount > 0 ? `<div class="badge bg-success position-absolute">${discount}% OFF</div>` : ''}
+                    <img src="${product.productImages && product.productImages[0] ? product.productImages[0] : 'images/placeholder.jpg'}" class="img-fluid mb-3" alt="${product.productName}">
+                    <div class="product-details">
+                        <h6>${product.productName}</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-danger fw-bold">₹${product.salePrice}</span>
+                                ${product.fullPrice && product.fullPrice != product.salePrice ? 
+                                    `<span class="text-decoration-line-through text-muted small ms-1">₹${product.fullPrice}</span>` : ''}
+                            </div>
+                            <button class="btn btn-sm btn-success"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        productContainer.innerHTML += productCard;
+    });
+}
+
