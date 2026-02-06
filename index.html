@@ -14,7 +14,7 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg">
                 <a class="navbar-brand" href="index.html">
-                    <h3 class="text-success">Groczy</h3>
+                    <h3 class="text-success mb-0">Groczy</h3>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
@@ -25,25 +25,45 @@
                         <li class="nav-item"><a class="nav-link" href="#categories">Categories</a></li>
                         <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
                     </ul>
+                    <div class="ms-3">
+                        <button class="btn btn-outline-success position-relative" onclick="showCart()">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-count">
+                                0
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </nav>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero bg-success text-white text-center py-5">
-        <div class="container">
-            <h1>Fresh Groceries Delivered</h1>
-            <p>Farm fresh vegetables and fruits at your doorstep</p>
+    <!-- Hero Slider -->
+    <section class="hero-slider">
+        <div id="bannerCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators" id="carousel-indicators"></div>
+            <div class="carousel-inner" id="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 400px; background: #f8f9fa;">
+                        <div class="spinner-border text-success" role="status"></div>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
         </div>
     </section>
 
     <!-- Categories Section -->
     <section id="categories" class="py-5">
         <div class="container">
-            <h2 class="text-center mb-5">Shop by Categories</h2>
-            <div class="row g-4" id="categories-container">
-                <div class="col-12 text-center">
+            <h2 class="text-center mb-4">Shop by Categories</h2>
+            <div class="categories-scroll" id="categories-container">
+                <div class="text-center">
                     <div class="spinner-border text-success" role="status"></div>
                     <p>Loading categories...</p>
                 </div>
@@ -63,6 +83,25 @@
             </div>
         </div>
     </section>
+
+    <!-- Cart Modal -->
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Shopping Cart</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="cart-items"></div>
+                <div class="modal-footer">
+                    <div class="w-100 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Total: <span id="cart-total">₹0</span></h5>
+                        <button class="btn btn-success" onclick="alert('Checkout coming soon!')">Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">

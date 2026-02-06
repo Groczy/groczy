@@ -5,6 +5,44 @@ body {
     padding: 0;
 }
 
+/* Header Cart Icon */
+.navbar .btn-outline-success {
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.navbar .btn-outline-success:hover {
+    background-color: #28a745;
+    color: white;
+}
+
+#cart-count {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.4rem;
+}
+
+/* Hero Slider */
+.hero-slider {
+    margin-bottom: 30px;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .carousel-item img {
+        height: 250px;
+    }
+}
+
 /* Hero Section */
 .hero {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
@@ -17,11 +55,98 @@ body {
     margin-bottom: 20px;
 }
 
-/* Cards */
+/* Categories Fit in One Line */
+.categories-scroll {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 15px;
+    padding: 20px 0;
+}
+
+.category-card-inline {
+    flex: 0 1 auto;
+    min-width: 120px;
+    max-width: 150px;
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.category-card-inline:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+}
+
+.category-image-wrapper-inline {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 10px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.category-image-wrapper-inline img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.category-card-inline:hover .category-image-wrapper-inline img {
+    transform: scale(1.1);
+}
+
+.category-card-inline h6 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive - Stack on mobile */
+@media (max-width: 768px) {
+    .categories-scroll {
+        overflow-x: auto;
+        justify-content: flex-start;
+    }
+    
+    .category-card-inline {
+        min-width: 100px;
+    }
+    
+    .category-image-wrapper-inline {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+/* Old category styles - remove */
+.category-card,
+.category-image-wrapper,
+.category-info,
+.shop-now-btn {
+    display: none;
+}
+
+/* Product Cards */
 .card {
     transition: transform 0.3s, box-shadow 0.3s;
     border: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    overflow: hidden;
 }
 
 .card:hover {
@@ -29,12 +154,6 @@ body {
     box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
-/* Category Cards */
-#categories-container .card {
-    cursor: pointer;
-}
-
-/* Product Cards */
 #products-container .card {
     position: relative;
 }
@@ -43,6 +162,7 @@ body {
 .btn-success {
     background-color: #28a745;
     border-color: #28a745;
+    border-radius: 10px;
 }
 
 .btn-success:hover {
@@ -59,5 +179,14 @@ footer {
 @media (max-width: 768px) {
     .hero h1 {
         font-size: 2rem;
+    }
+    
+    .category-image-wrapper {
+        height: 150px;
+        padding: 20px;
+    }
+    
+    .category-image-wrapper img {
+        max-height: 100px;
     }
 }
