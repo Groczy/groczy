@@ -365,3 +365,48 @@ function updateCartSummary() {
     document.getElementById('cart-delivery-fee').textContent = `₹${deliveryFee.toFixed(2)}`;
     document.getElementById('cart-total').textContent = `₹${total.toFixed(2)}`;
 }
+// ADD THIS CODE TO YOUR script.js FILE IN GITHUB
+
+// Function to load categories from Firebase
+function loadCategoriesFromFirebase() {
+    const categoriesRef = db.collection("categories");
+    
+    categoriesRef.onSnapshot(snapshot => {
+        const categories = [];
+        snapshot.forEach(doc => {
+            categories.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        renderCategories(categories);
+    }, error => {
+        console.error("Error fetching categories: ", error);
+    });
+}
+
+// Function to render categories
+function renderCategories(categories) {
+    const categorySection = document.querySelector('.row.g-4');
+    if (!categorySection) return;
+    
+    categorySection.innerHTML = '';
+    
+    categories.forEach(category => {
+        const categoryCard = `
+            <div class="col-6 col-md-3">
+                <div class="category-card text-center p-4 shadow-sm rounded-3">
+                    <img src="${category.categoryImg}" alt="${category.categoryName}" class="img-fluid mb-3" width="80">
+                    <h5>${category.categoryName}</h5>
+                    <a href="#" class="btn btn-sm btn-outline-success mt-2">Shop Now</a>
+                </div>
+            </div>
+        `;
+        categorySection.innerHTML += categoryCard;
+    });
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadCategoriesFromFirebase();
+});
