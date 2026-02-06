@@ -3,30 +3,25 @@ let currentUser = null;
 
 // Check auth state
 firebase.auth().onAuthStateChanged(user => {
+    console.log('Auth state changed:', user ? user.email : 'No user');
     currentUser = user;
     updateAuthUI();
-    
-    // Check if just logged in via redirect
-    if (user && !sessionStorage.getItem('loginShown')) {
-        sessionStorage.setItem('loginShown', 'true');
-        // Small delay to ensure UI is ready
-        setTimeout(() => {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
-            if (modal) modal.hide();
-        }, 100);
-    }
 });
 
 function updateAuthUI() {
     const authBtn = document.getElementById('auth-btn');
     const authText = document.getElementById('auth-text');
+    const profileBtn = document.getElementById('profile-btn');
+    
     if (currentUser) {
-        authText.textContent = currentUser.email ? currentUser.email.split('@')[0] : 'Profile';
-        authBtn.onclick = logout;
+        console.log('User logged in:', currentUser.email);
+        authBtn.style.display = 'none';
+        profileBtn.style.display = 'block';
     } else {
+        console.log('No user logged in');
+        authBtn.style.display = 'block';
+        profileBtn.style.display = 'none';
         authText.textContent = 'Login';
-        authBtn.onclick = showAuthModal;
-        sessionStorage.removeItem('loginShown');
     }
 }
 
@@ -36,13 +31,13 @@ function showAuthModal() {
 }
 
 function googleSignIn() {
+    console.log('Google Sign-In clicked');
     const provider = new firebase.auth.GoogleAuthProvider();
     
-    // Try popup first, fallback to redirect
     firebase.auth().signInWithPopup(provider)
         .then(result => {
+            console.log('Popup sign-in successful:', result.user.email);
             const user = result.user;
-            // Save user data to Firestore
             return db.collection('users').doc(user.uid).set({
                 uId: user.uid,
                 username: user.displayName || '',
@@ -60,16 +55,16 @@ function googleSignIn() {
             });
         })
         .then(() => {
-            bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
-            alert('Google Sign-In successful!');
-            updateAuthUI();
+            console.log('User data saved to Firestore');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+            if (modal) modal.hide();
         })
         .catch(error => {
-            console.error('Google Sign-In error:', error);
-            // If popup blocked, try redirect
-            if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+            console.error('Google Sign-In error:', error.code, error.message);
+            if (error.code === 'auth/popup-blocked') {
+                console.log('Popup blocked, trying redirect...');
                 firebase.auth().signInWithRedirect(provider);
-            } else {
+            } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                 alert('Google Sign-In failed: ' + error.message);
             }
         });
@@ -79,9 +74,8 @@ function googleSignIn() {
 firebase.auth().getRedirectResult()
     .then(result => {
         if (result.user && result.credential) {
+            console.log('Redirect sign-in successful:', result.user.email);
             const user = result.user;
-            console.log('Google Sign-In successful:', user.email);
-            // Save user data to Firestore
             return db.collection('users').doc(user.uid).set({
                 uId: user.uid,
                 username: user.displayName || '',
@@ -99,9 +93,14 @@ firebase.auth().getRedirectResult()
             });
         }
     })
+    .then(() => {
+        if (firebase.auth().currentUser) {
+            console.log('User data saved after redirect');
+        }
+    })
     .catch(error => {
         if (error.code && error.code !== 'auth/popup-closed-by-user') {
-            console.error('Google Sign-In redirect error:', error);
+            console.error('Redirect error:', error.code, error.message);
             alert('Google Sign-In failed: ' + error.message);
         }
     });
@@ -192,8 +191,149 @@ function logout() {
     firebase.auth().signOut().then(() => {
         currentUser = null;
         updateAuthUI();
+        const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
+        if (profileModal) profileModal.hide();
         alert('Logged out successfully');
     });
+}
+
+function showProfile() {
+    if (!currentUser) {
+        showAuthModal();
+        return;
+    }
+    
+    // Load user data
+    db.collection('users').doc(currentUser.uid).get()
+        .then(doc => {
+            const userData = doc.exists ? doc.data() : {};
+            
+            // Update profile display
+            const photoUrl = currentUser.photoURL || 'https://via.placeholder.com/120';
+            document.getElementById('profile-photo').src = photoUrl;
+            document.getElementById('profile-name').textContent = userData.username || currentUser.displayName || 'User';
+            document.getElementById('profile-email').textContent = currentUser.email;
+            
+            // Load order count
+            return db.collection('orders').doc(currentUser.uid).collection('confirmOrders').get();
+        })
+        .then(snapshot => {
+            document.getElementById('profile-orders').textContent = `${snapshot.size} Orders`;
+            const modal = new bootstrap.Modal(document.getElementById('profileModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error loading profile:', error);
+            alert('Failed to load profile');
+        });
+}
+
+function showOrders() {
+    if (!currentUser) return;
+    
+    const ordersContainer = document.getElementById('orders-container');
+    ordersContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-success"></div><p>Loading orders...</p></div>';
+    
+    db.collection('orders').doc(currentUser.uid).collection('confirmOrders').get()
+        .then(snapshot => {
+            if (snapshot.empty) {
+                ordersContainer.innerHTML = '<div class="text-center text-muted"><i class="fas fa-shopping-bag fa-3x mb-3"></i><p>No orders yet</p></div>';
+                return;
+            }
+            
+            let ordersHtml = '';
+            snapshot.forEach(doc => {
+                const order = doc.data();
+                const orderId = doc.id;
+                const products = order.products || [];
+                const totalItems = products.reduce((sum, p) => sum + (p.productQuantity || 0), 0);
+                const totalPrice = products.reduce((sum, p) => sum + (p.productTotalPrice || 0), 0);
+                
+                ordersHtml += `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">Order #${orderId}</h6>
+                                    <small class="text-muted">${totalItems} items</small>
+                                </div>
+                                <span class="badge bg-warning">Pending</span>
+                            </div>
+                            <div class="mb-2">
+                                ${products.slice(0, 2).map(p => `
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="${p.productImages?.[0] || 'https://via.placeholder.com/50'}" style="width: 50px; height: 50px; object-fit: cover;" class="rounded me-2">
+                                        <div class="flex-grow-1">
+                                            <small class="d-block">${p.productName}</small>
+                                            <small class="text-muted">Qty: ${p.productQuantity} × ₹${p.salePrice}</small>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${products.length > 2 ? `<small class="text-muted">+${products.length - 2} more items</small>` : ''}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                                <span class="fw-bold">Total: ₹${totalPrice.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            ordersContainer.innerHTML = ordersHtml;
+        })
+        .catch(error => {
+            console.error('Error loading orders:', error);
+            ordersContainer.innerHTML = '<div class="alert alert-danger">Failed to load orders</div>';
+        });
+    
+    const modal = new bootstrap.Modal(document.getElementById('ordersModal'));
+    modal.show();
+}
+
+function showAddresses() {
+    if (!currentUser) return;
+    
+    const addressesContainer = document.getElementById('addresses-container');
+    addressesContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-success"></div><p>Loading addresses...</p></div>';
+    
+    db.collection('Customer_address').doc(currentUser.uid).collection('addresses').get()
+        .then(snapshot => {
+            if (snapshot.empty) {
+                addressesContainer.innerHTML = '<div class="text-center text-muted"><i class="fas fa-map-marker-alt fa-3x mb-3"></i><p>No saved addresses</p></div>';
+                return;
+            }
+            
+            let addressesHtml = '';
+            snapshot.forEach(doc => {
+                const address = doc.data();
+                const icon = address.addressType === 'Home' ? 'fa-home' : address.addressType === 'Work' ? 'fa-briefcase' : 'fa-map-marker-alt';
+                
+                addressesHtml += `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start">
+                                <i class="fas ${icon} text-success fa-2x me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${address.addressType || 'Address'}</h6>
+                                    <p class="mb-1">${address.name || ''}</p>
+                                    <p class="mb-1 text-muted">${address.address || ''}</p>
+                                    <p class="mb-0 text-muted"><i class="fas fa-phone"></i> ${address.phone || ''}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            addressesContainer.innerHTML = addressesHtml;
+        })
+        .catch(error => {
+            console.error('Error loading addresses:', error);
+            addressesContainer.innerHTML = '<div class="alert alert-danger">Failed to load addresses</div>';
+        });
+    
+    const modal = new bootstrap.Modal(document.getElementById('addressesModal'));
+    modal.show();
 }
 
 function loadBanners() {
