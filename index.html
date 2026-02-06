@@ -25,12 +25,13 @@
                         <li class="nav-item"><a class="nav-link" href="#categories">Categories</a></li>
                         <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
                     </ul>
-                    <div class="ms-3">
+                    <div class="d-flex align-items-center gap-2 ms-3">
+                        <button class="btn btn-outline-success" id="auth-btn" onclick="showAuthModal()">
+                            <i class="fas fa-user"></i> <span id="auth-text">Login</span>
+                        </button>
                         <button class="btn btn-outline-success position-relative" onclick="showCart()">
                             <i class="fas fa-shopping-cart"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-count">
-                                0
-                            </span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-count">0</span>
                         </button>
                     </div>
                 </div>
@@ -93,10 +94,136 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="cart-items"></div>
+                <div class="modal-footer flex-column">
+                    <div class="w-100" id="delivery-info"></div>
+                    <div class="w-100 d-flex justify-content-between align-items-center mt-2">
+                        <div>
+                            <small class="text-muted d-block">Item Total: <span id="item-total">₹0</span></small>
+                            <small class="text-muted d-block">Delivery: <span id="delivery-charge">₹0</span></small>
+                            <h5 class="mb-0 mt-1">Total: <span id="cart-total">₹0</span></h5>
+                        </div>
+                        <button class="btn btn-success" onclick="proceedToCheckout()">Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal fade" id="checkoutModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Checkout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="checkout-form">
+                        <div class="mb-3">
+                            <label class="form-label">Name *</label>
+                            <input type="text" class="form-control" id="customer-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone *</label>
+                            <input type="tel" class="form-control" id="customer-phone" pattern="[0-9]{10}" maxlength="10" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Address *</label>
+                            <textarea class="form-control" id="customer-address" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Method *</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment-method" id="payment-cod" value="cod" checked>
+                                <label class="form-check-label" for="payment-cod">
+                                    <i class="fas fa-money-bill-wave"></i> Cash on Delivery
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment-method" id="payment-online" value="online">
+                                <label class="form-check-label" for="payment-online">
+                                    <i class="fas fa-credit-card"></i> Pay Online
+                                </label>
+                            </div>
+                        </div>
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Item Total:</span>
+                                <span id="checkout-item-total">₹0</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Delivery Charge:</span>
+                                <span id="checkout-delivery-charge">₹0</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total Amount:</span>
+                                <span id="checkout-total">₹0</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
                 <div class="modal-footer">
-                    <div class="w-100 d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Total: <span id="cart-total">₹0</span></h5>
-                        <button class="btn btn-success" onclick="alert('Checkout coming soon!')">Checkout</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="placeOrder()">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal fade" id="authModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <button class="btn btn-outline-danger w-100 mb-3" onclick="googleSignIn()">
+                        <i class="fab fa-google me-2"></i>Sign in with Google
+                    </button>
+                    <div class="text-center mb-3">
+                        <small class="text-muted">OR</small>
+                    </div>
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#login-tab">Login</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#signup-tab">Sign Up</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="login-tab">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="login-email" placeholder="Enter your email">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" id="login-password" placeholder="Enter your password">
+                            </div>
+                            <button class="btn btn-success w-100" onclick="loginUser()">Login</button>
+                        </div>
+                        <div class="tab-pane fade" id="signup-tab">
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" id="signup-username" placeholder="Enter your name">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="signup-email" placeholder="Enter your email">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="signup-phone" placeholder="10-digit phone" maxlength="10">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" id="signup-password" placeholder="Create password">
+                            </div>
+                            <button class="btn btn-success w-100" onclick="signupUser()">Sign Up</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -112,8 +239,10 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>

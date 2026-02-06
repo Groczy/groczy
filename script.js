@@ -1,4 +1,157 @@
 // Load banners from Firebase
+let currentUser = null;
+
+// Check auth state
+firebase.auth().onAuthStateChanged(user => {
+    currentUser = user;
+    updateAuthUI();
+});
+
+function updateAuthUI() {
+    const authBtn = document.getElementById('auth-btn');
+    const authText = document.getElementById('auth-text');
+    if (currentUser) {
+        authText.textContent = currentUser.email ? currentUser.email.split('@')[0] : 'Profile';
+        authBtn.onclick = logout;
+    } else {
+        authText.textContent = 'Login';
+        authBtn.onclick = showAuthModal;
+    }
+}
+
+function showAuthModal() {
+    const modal = new bootstrap.Modal(document.getElementById('authModal'));
+    modal.show();
+}
+
+function googleSignIn() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    // Use redirect for better compatibility
+    firebase.auth().signInWithRedirect(provider);
+}
+
+// Handle redirect result
+firebase.auth().getRedirectResult()
+    .then(result => {
+        if (result.user) {
+            const user = result.user;
+            // Save user data to Firestore
+            return db.collection('users').doc(user.uid).set({
+                uId: user.uid,
+                username: user.displayName || '',
+                email: user.email || '',
+                phone: user.phoneNumber || '',
+                userImg: user.photoURL || '',
+                userDeviceToken: '',
+                country: '',
+                userAddress: '',
+                street: '',
+                isAdmin: false,
+                isActive: true,
+                createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+                city: ''
+            }).then(() => {
+                alert('Google Sign-In successful!');
+            });
+        }
+    })
+    .catch(error => {
+        if (error.code !== 'auth/popup-closed-by-user') {
+            console.error('Google Sign-In error:', error);
+            alert('Google Sign-In failed: ' + error.message);
+        }
+    });
+
+function loginUser() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    
+    if (!email || !password) {
+        alert('Please enter email and password');
+        return;
+    }
+    
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(result => {
+            if (!result.user.emailVerified) {
+                alert('Please verify your email before logging in.');
+                firebase.auth().signOut();
+                return;
+            }
+            currentUser = result.user;
+            bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+            alert('Login successful!');
+            updateAuthUI();
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+            alert('Login failed: ' + error.message);
+        });
+}
+
+function signupUser() {
+    const username = document.getElementById('signup-username').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const phone = document.getElementById('signup-phone').value.trim();
+    const password = document.getElementById('signup-password').value.trim();
+    
+    if (!username || !email || !phone || !password) {
+        alert('Please fill all fields');
+        return;
+    }
+    
+    if (phone.length !== 10) {
+        alert('Please enter a valid 10-digit phone number');
+        return;
+    }
+    
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(result => {
+            // Save user data to Firestore
+            return db.collection('users').doc(result.user.uid).set({
+                uId: result.user.uid,
+                username: username,
+                email: email,
+                phone: phone,
+                userImg: '',
+                userDeviceToken: '',
+                country: '',
+                userAddress: '',
+                street: '',
+                isAdmin: false,
+                isActive: true,
+                createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+                city: ''
+            });
+        })
+        .then(() => {
+            // Send verification email
+            return firebase.auth().currentUser.sendEmailVerification();
+        })
+        .then(() => {
+            alert('Account created! Please verify your email before logging in.');
+            firebase.auth().signOut();
+            document.getElementById('signup-username').value = '';
+            document.getElementById('signup-email').value = '';
+            document.getElementById('signup-phone').value = '';
+            document.getElementById('signup-password').value = '';
+            // Switch to login tab
+            document.querySelector('[data-bs-target="#login-tab"]').click();
+        })
+        .catch(error => {
+            console.error('Signup error:', error);
+            alert('Signup failed: ' + error.message);
+        });
+}
+
+function logout() {
+    firebase.auth().signOut().then(() => {
+        currentUser = null;
+        updateAuthUI();
+        alert('Logged out successfully');
+    });
+}
+
 function loadBanners() {
     db.collection("banners").onSnapshot(snapshot => {
         const banners = [];
@@ -170,6 +323,24 @@ function renderProducts(products) {
 
 // Cart functionality
 let cart = JSON.parse(localStorage.getItem('groczyCart')) || [];
+let deliveryCharges = 0;
+let freeDeliveryThreshold = 0;
+
+// Load delivery charges from Firebase
+function loadDeliveryCharges() {
+    db.collection("deleverymodel").doc("deliver_chargesmodel").get()
+        .then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                deliveryCharges = parseFloat(data.deliveryCharges) || 0;
+                freeDeliveryThreshold = parseFloat(data.freeDeliveryThreshold) || 0;
+                console.log('Delivery charges loaded:', deliveryCharges, 'Free threshold:', freeDeliveryThreshold);
+            }
+        })
+        .catch(error => {
+            console.error("Error loading delivery charges:", error);
+        });
+}
 
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -185,7 +356,6 @@ function addToCart(product) {
     }
     localStorage.setItem('groczyCart', JSON.stringify(cart));
     updateCartCount();
-    alert(`${product.productName} added to cart!`);
 }
 
 function showCart() {
@@ -200,7 +370,12 @@ function showCart() {
 
 function renderCart() {
     const container = document.getElementById('cart-items');
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const itemTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Calculate delivery charge
+    const isFreeDelivery = itemTotal >= freeDeliveryThreshold;
+    const deliveryCharge = isFreeDelivery ? 0 : deliveryCharges;
+    const total = itemTotal + deliveryCharge;
     
     container.innerHTML = cart.map(item => `
         <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
@@ -220,6 +395,27 @@ function renderCart() {
         </div>
     `).join('');
     
+    // Update delivery info
+    const deliveryInfo = document.getElementById('delivery-info');
+    if (!isFreeDelivery && freeDeliveryThreshold > 0) {
+        const remaining = freeDeliveryThreshold - itemTotal;
+        deliveryInfo.innerHTML = `
+            <div class="alert alert-warning mb-0">
+                <i class="fas fa-truck"></i> Add items worth ₹${remaining.toFixed(2)} more for FREE delivery!
+            </div>
+        `;
+    } else if (isFreeDelivery) {
+        deliveryInfo.innerHTML = `
+            <div class="alert alert-success mb-0">
+                <i class="fas fa-check-circle"></i> Congratulations! You are eligible for free delivery.
+            </div>
+        `;
+    } else {
+        deliveryInfo.innerHTML = '';
+    }
+    
+    document.getElementById('item-total').textContent = `₹${itemTotal.toFixed(2)}`;
+    document.getElementById('delivery-charge').textContent = isFreeDelivery ? 'FREE' : `₹${deliveryCharge.toFixed(2)}`;
     document.getElementById('cart-total').textContent = `₹${total.toFixed(2)}`;
 }
 
@@ -248,11 +444,228 @@ function removeFromCart(productId) {
     }
 }
 
+// Proceed to checkout
+function proceedToCheckout() {
+    if (!currentUser) {
+        alert('Please login to proceed with checkout');
+        showAuthModal();
+        return;
+    }
+    
+    if (cart.length === 0) {
+        alert('Your cart is empty!');
+        return;
+    }
+    
+    // Close cart modal
+    const cartModal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
+    if (cartModal) cartModal.hide();
+    
+    // Calculate totals
+    const itemTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const isFreeDelivery = itemTotal >= freeDeliveryThreshold;
+    const deliveryCharge = isFreeDelivery ? 0 : deliveryCharges;
+    const total = itemTotal + deliveryCharge;
+    
+    // Update checkout modal
+    document.getElementById('checkout-item-total').textContent = `₹${itemTotal.toFixed(2)}`;
+    document.getElementById('checkout-delivery-charge').textContent = isFreeDelivery ? 'FREE' : `₹${deliveryCharge.toFixed(2)}`;
+    document.getElementById('checkout-total').textContent = `₹${total.toFixed(2)}`;
+    
+    // Show checkout modal
+    const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+    checkoutModal.show();
+}
+
+// Place order
+function placeOrder() {
+    const form = document.getElementById('checkout-form');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const customerName = document.getElementById('customer-name').value.trim();
+    const customerPhone = document.getElementById('customer-phone').value.trim();
+    const customerAddress = document.getElementById('customer-address').value.trim();
+    const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+    
+    if (!customerName || !customerPhone || !customerAddress) {
+        alert('Please fill all required fields');
+        return;
+    }
+    
+    if (customerPhone.length !== 10) {
+        alert('Please enter a valid 10-digit phone number');
+        return;
+    }
+    
+    if (paymentMethod === 'online') {
+        initiateOnlinePayment(customerName, customerPhone, customerAddress);
+    } else {
+        processOrder(customerName, customerPhone, customerAddress, 'Cash on Delivery');
+    }
+}
+
+// Initiate Razorpay payment
+function initiateOnlinePayment(customerName, customerPhone, customerAddress) {
+    const itemTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const isFreeDelivery = itemTotal >= freeDeliveryThreshold;
+    const deliveryCharge = isFreeDelivery ? 0 : deliveryCharges;
+    const totalPrice = itemTotal + deliveryCharge;
+    
+    db.collection('payment_gateway').doc('payment_gateway_r').get()
+        .then(doc => {
+            if (!doc.exists) {
+                alert('Payment gateway not configured');
+                return;
+            }
+            
+            const razorpayKey = doc.data().payment_gty;
+            if (!razorpayKey) {
+                alert('Payment gateway key not found');
+                return;
+            }
+            
+            const options = {
+                key: razorpayKey,
+                amount: Math.round(totalPrice * 100),
+                currency: 'INR',
+                name: 'Groczy India',
+                description: 'Product Purchase',
+                handler: function(response) {
+                    processOrder(customerName, customerPhone, customerAddress, 'Online Payment', response.razorpay_payment_id);
+                },
+                prefill: {
+                    name: customerName,
+                    contact: customerPhone,
+                    email: 'customer@example.com'
+                },
+                theme: {
+                    color: '#28a745'
+                },
+                modal: {
+                    ondismiss: function() {
+                        console.log('Payment cancelled');
+                    }
+                }
+            };
+            
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function(response) {
+                alert('Payment failed: ' + response.error.description);
+            });
+            rzp.open();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to initialize payment');
+        });
+}
+
+// Process and save order
+function processOrder(customerName, customerPhone, customerAddress, paymentType, paymentId = null) {
+    const itemTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const isFreeDelivery = itemTotal >= freeDeliveryThreshold;
+    const deliveryCharge = isFreeDelivery ? 0 : deliveryCharges;
+    const totalPrice = itemTotal + deliveryCharge;
+    
+    // Generate order ID matching Flutter app format: ORD + 7-digit random number
+    const randomOrderId = 1000000 + Math.floor(Math.random() * 9000000);
+    const orderId = 'ORD' + randomOrderId;
+    const userId = currentUser.uid;
+    
+    const orderData = {
+        uId: userId,
+        customerName: customerName,
+        customerPhone: customerPhone,
+        customerAddress: customerAddress,
+        customerDeviceToken: '',
+        orderStatus: false,
+        paymentType: paymentType,
+        totalPrice: totalPrice,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        deliveryCharges: deliveryCharge
+    };
+    
+    const products = cart.map(item => ({
+        productId: item.id,
+        productName: item.productName,
+        price: item.price,
+        quantity: item.quantity,
+        productTotalPrice: item.price * item.quantity,
+        image: item.image
+    }));
+    
+    const productsForFirebase = cart.map(item => ({
+        productId: item.id,
+        categoryId: item.categoryId || '',
+        productName: item.productName,
+        categoryName: item.categoryName || '',
+        salePrice: item.price.toString(),
+        fullPrice: item.price.toString(),
+        productImages: [item.image],
+        deliveryTime: '',
+        isSale: false,
+        productDescription: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        productQuantity: item.quantity,
+        productTotalPrice: item.price * item.quantity,
+        customerId: userId,
+        status: false,
+        customerName: customerName,
+        customerPhone: customerPhone,
+        customerAddress: customerAddress,
+        customerDeviceToken: '',
+        paymentType: paymentType,
+        orderStatus: 'pending',
+        deliveryCharges: deliveryCharge
+    }));
+    
+    // Save to same 'orders' collection as Flutter app
+    db.collection('orders').doc(userId).set(orderData)
+    .then(() => {
+        return db.collection('orders').doc(userId).collection('confirmOrders').doc(orderId).set({
+            products: productsForFirebase
+        });
+    })
+    .then(() => {
+        cart = [];
+        localStorage.removeItem('groczyCart');
+        updateCartCount();
+        
+        const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+        if (checkoutModal) checkoutModal.hide();
+        
+        document.getElementById('checkout-form').reset();
+        
+        // Redirect to order success page with details
+        const params = new URLSearchParams({
+            orderId: orderId,
+            name: customerName,
+            phone: customerPhone,
+            address: customerAddress,
+            payment: paymentType,
+            total: totalPrice.toFixed(2),
+            delivery: deliveryCharge.toFixed(2),
+            itemTotal: itemTotal.toFixed(2),
+            products: JSON.stringify(products)
+        });
+        window.location.href = 'order-success.html?' + params.toString();
+    })
+    .catch(error => {
+        console.error('Error placing order:', error);
+        alert('Failed to place order: ' + error.message);
+    });
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Loading Groczy website...');
     loadBanners();
     loadCategories();
     loadProducts();
+    loadDeliveryCharges();
     updateCartCount();
 });

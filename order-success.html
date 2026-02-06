@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Success - Groczy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+        }
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 90%;
+            overflow: hidden;
+        }
+        .success-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        .success-icon i {
+            font-size: 40px;
+            color: #28a745;
+        }
+        .order-details {
+            padding: 30px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .product-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .product-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+        .btn-home {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            color: white;
+            padding: 12px 40px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="success-card">
+        <div class="success-header">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2 class="mb-2">Order Placed Successfully!</h2>
+            <p class="mb-0">Thank you for your order</p>
+        </div>
+        
+        <div class="order-details">
+            <div class="detail-row">
+                <strong>Order ID:</strong>
+                <span id="order-id">-</span>
+            </div>
+            <div class="detail-row">
+                <strong>Customer Name:</strong>
+                <span id="customer-name">-</span>
+            </div>
+            <div class="detail-row">
+                <strong>Phone:</strong>
+                <span id="customer-phone">-</span>
+            </div>
+            <div class="detail-row">
+                <strong>Delivery Address:</strong>
+                <span id="customer-address" style="text-align: right; max-width: 60%;">-</span>
+            </div>
+            <div class="detail-row">
+                <strong>Payment Method:</strong>
+                <span id="payment-type">-</span>
+            </div>
+            
+            <h5 class="mt-4 mb-3">Order Items:</h5>
+            <div id="order-products"></div>
+            
+            <div class="detail-row mt-3">
+                <strong>Item Total:</strong>
+                <span id="item-total">₹0</span>
+            </div>
+            <div class="detail-row">
+                <strong>Delivery Charge:</strong>
+                <span id="delivery-charge">₹0</span>
+            </div>
+            <div class="detail-row">
+                <strong style="font-size: 1.2rem; color: #28a745;">Total Amount:</strong>
+                <strong style="font-size: 1.2rem; color: #28a745;" id="total-amount">₹0</strong>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="index.html" class="btn btn-home">
+                    <i class="fas fa-home me-2"></i>Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get order details from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderData = {
+            orderId: urlParams.get('orderId'),
+            customerName: urlParams.get('name'),
+            customerPhone: urlParams.get('phone'),
+            customerAddress: urlParams.get('address'),
+            paymentType: urlParams.get('payment'),
+            totalAmount: urlParams.get('total'),
+            deliveryCharge: urlParams.get('delivery'),
+            itemTotal: urlParams.get('itemTotal'),
+            products: JSON.parse(decodeURIComponent(urlParams.get('products') || '[]'))
+        };
+
+        // Display order details
+        document.getElementById('order-id').textContent = orderData.orderId || '-';
+        document.getElementById('customer-name').textContent = orderData.customerName || '-';
+        document.getElementById('customer-phone').textContent = orderData.customerPhone || '-';
+        document.getElementById('customer-address').textContent = orderData.customerAddress || '-';
+        document.getElementById('payment-type').textContent = orderData.paymentType || '-';
+        document.getElementById('item-total').textContent = '₹' + (parseFloat(orderData.itemTotal) || 0).toFixed(2);
+        document.getElementById('delivery-charge').textContent = parseFloat(orderData.deliveryCharge) === 0 ? 'FREE' : '₹' + (parseFloat(orderData.deliveryCharge) || 0).toFixed(2);
+        document.getElementById('total-amount').textContent = '₹' + (parseFloat(orderData.totalAmount) || 0).toFixed(2);
+
+        // Display products
+        const productsContainer = document.getElementById('order-products');
+        if (orderData.products && orderData.products.length > 0) {
+            orderData.products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-item';
+                productDiv.innerHTML = `
+                    <img src="${product.image || 'https://via.placeholder.com/50'}" alt="${product.productName || 'Product'}">
+                    <div class="flex-grow-1">
+                        <div><strong>${product.productName || 'Unknown Product'}</strong></div>
+                        <small class="text-muted">₹${product.price || 0} × ${product.quantity || 0} = ₹${product.productTotalPrice || 0}</small>
+                    </div>
+                `;
+                productsContainer.appendChild(productDiv);
+            });
+        }
+    </script>
+</body>
+</html>
