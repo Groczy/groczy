@@ -357,18 +357,34 @@ function showAddresses() {
     modal.show();
 }
 
-function showAddAddressForm() {
+// Make functions globally accessible
+window.showAddAddressForm = function() {
+    console.log('showAddAddressForm called');
+    
+    // Close addresses modal first
+    const addressesModal = bootstrap.Modal.getInstance(document.getElementById('addressesModal'));
+    if (addressesModal) addressesModal.hide();
+    
+    // Reset form
     document.getElementById('address-form').reset();
     document.getElementById('address-id').value = '';
     document.getElementById('addAddressModalTitle').textContent = 'Add New Address';
     document.getElementById('type-home').checked = true;
     
-    const modal = new bootstrap.Modal(document.getElementById('addAddressModal'));
-    modal.show();
-}
+    // Show add address modal
+    setTimeout(() => {
+        const modal = new bootstrap.Modal(document.getElementById('addAddressModal'));
+        modal.show();
+    }, 300);
+};
 
-function editAddress(addressId) {
+window.editAddress = function(addressId) {
+    console.log('editAddress called:', addressId);
     if (!currentUser) return;
+    
+    // Close addresses modal first
+    const addressesModal = bootstrap.Modal.getInstance(document.getElementById('addressesModal'));
+    if (addressesModal) addressesModal.hide();
     
     db.collection('Customer_address').doc(currentUser.uid).collection('addresses').doc(addressId).get()
         .then(doc => {
@@ -393,16 +409,18 @@ function editAddress(addressId) {
             
             document.getElementById('addAddressModalTitle').textContent = 'Edit Address';
             
-            const modal = new bootstrap.Modal(document.getElementById('addAddressModal'));
-            modal.show();
+            setTimeout(() => {
+                const modal = new bootstrap.Modal(document.getElementById('addAddressModal'));
+                modal.show();
+            }, 300);
         })
         .catch(error => {
             console.error('Error loading address:', error);
             alert('Failed to load address');
         });
-}
+};
 
-function saveAddress() {
+window.saveAddress = function() {
     const form = document.getElementById('address-form');
     if (!form.checkValidity()) {
         form.reportValidity();
@@ -453,9 +471,9 @@ function saveAddress() {
             console.error('Error saving address:', error);
             alert('Failed to save address: ' + error.message);
         });
-}
+};
 
-function deleteAddress(addressId) {
+window.deleteAddress = function(addressId) {
     if (!currentUser) return;
     
     if (!confirm('Are you sure you want to delete this address?')) return;
@@ -469,7 +487,7 @@ function deleteAddress(addressId) {
             console.error('Error deleting address:', error);
             alert('Failed to delete address: ' + error.message);
         });
-}
+};
 
 function loadBanners() {
     db.collection("banners").onSnapshot(snapshot => {
@@ -795,6 +813,86 @@ function proceedToCheckout() {
     const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
     checkoutModal.show();
 }
+
+// Select saved address for checkout
+window.selectSavedAddress = function() {
+    if (!currentUser) return;
+    
+    db.collection('Customer_address').doc(currentUser.uid).collection('addresses').get()
+        .then(snapshot => {
+            if (snapshot.empty) {
+                alert('No saved addresses found. Please add an address first.');
+                return;
+            }
+            
+            let addressesHtml = '<div class="list-group">';
+            snapshot.forEach(doc => {
+                const address = doc.data();
+                const icon = address.addressType === 'Home' ? 'fa-home' : address.addressType === 'Work' ? 'fa-briefcase' : 'fa-map-marker-alt';
+                
+                addressesHtml += `
+                    <button type="button" class="list-group-item list-group-item-action select-address-btn" data-address='${JSON.stringify(address)}'>
+                        <div class="d-flex align-items-start">
+                            <i class="fas ${icon} text-success fa-lg me-3 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">${address.addressType || 'Address'}</h6>
+                                <p class="mb-1 small">${address.username || ''}</p>
+                                <p class="mb-1 small text-muted">${address.address || ''}, ${address.city || ''}</p>
+                                <p class="mb-0 small text-muted"><i class="fas fa-phone"></i> ${address.mobile || ''}</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                    </button>
+                `;
+            });
+            addressesHtml += '</div>';
+            
+            // Show address selection in a modal
+            const modalHtml = `
+                <div class="modal fade" id="selectAddressModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-success text-white">
+                                <h5 class="modal-title"><i class="fas fa-map-marker-alt me-2"></i>Select Delivery Address</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${addressesHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('selectAddressModal');
+            if (existingModal) existingModal.remove();
+            
+            // Add new modal
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Add click handlers
+            document.querySelectorAll('.select-address-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const address = JSON.parse(this.getAttribute('data-address'));
+                    document.getElementById('customer-name').value = address.username || '';
+                    document.getElementById('customer-phone').value = address.mobile || '';
+                    document.getElementById('customer-address').value = `${address.address || ''}, ${address.city || ''} ${address.postalCode ? '- ' + address.postalCode : ''}`;
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('selectAddressModal'));
+                    if (modal) modal.hide();
+                });
+            });
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('selectAddressModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error loading addresses:', error);
+            alert('Failed to load addresses');
+        });
+};
 
 // Place order
 function placeOrder() {
