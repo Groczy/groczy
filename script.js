@@ -26,8 +26,42 @@ function showAuthModal() {
 
 function googleSignIn() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    // Use redirect for better compatibility
-    firebase.auth().signInWithRedirect(provider);
+    
+    // Try popup first, fallback to redirect
+    firebase.auth().signInWithPopup(provider)
+        .then(result => {
+            const user = result.user;
+            // Save user data to Firestore
+            return db.collection('users').doc(user.uid).set({
+                uId: user.uid,
+                username: user.displayName || '',
+                email: user.email || '',
+                phone: user.phoneNumber || '',
+                userImg: user.photoURL || '',
+                userDeviceToken: '',
+                country: '',
+                userAddress: '',
+                street: '',
+                isAdmin: false,
+                isActive: true,
+                createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+                city: ''
+            });
+        })
+        .then(() => {
+            bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+            alert('Google Sign-In successful!');
+            updateAuthUI();
+        })
+        .catch(error => {
+            console.error('Google Sign-In error:', error);
+            // If popup blocked, try redirect
+            if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+                firebase.auth().signInWithRedirect(provider);
+            } else {
+                alert('Google Sign-In failed: ' + error.message);
+            }
+        });
 }
 
 // Handle redirect result
@@ -56,9 +90,8 @@ firebase.auth().getRedirectResult()
         }
     })
     .catch(error => {
-        if (error.code !== 'auth/popup-closed-by-user') {
-            console.error('Google Sign-In error:', error);
-            alert('Google Sign-In failed: ' + error.message);
+        if (error.code && error.code !== 'auth/popup-closed-by-user') {
+            console.error('Google Sign-In redirect error:', error);
         }
     });
 
