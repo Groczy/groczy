@@ -5,6 +5,16 @@ let currentUser = null;
 firebase.auth().onAuthStateChanged(user => {
     currentUser = user;
     updateAuthUI();
+    
+    // Check if just logged in via redirect
+    if (user && !sessionStorage.getItem('loginShown')) {
+        sessionStorage.setItem('loginShown', 'true');
+        // Small delay to ensure UI is ready
+        setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+            if (modal) modal.hide();
+        }, 100);
+    }
 });
 
 function updateAuthUI() {
@@ -16,6 +26,7 @@ function updateAuthUI() {
     } else {
         authText.textContent = 'Login';
         authBtn.onclick = showAuthModal;
+        sessionStorage.removeItem('loginShown');
     }
 }
 
@@ -67,8 +78,9 @@ function googleSignIn() {
 // Handle redirect result
 firebase.auth().getRedirectResult()
     .then(result => {
-        if (result.user) {
+        if (result.user && result.credential) {
             const user = result.user;
+            console.log('Google Sign-In successful:', user.email);
             // Save user data to Firestore
             return db.collection('users').doc(user.uid).set({
                 uId: user.uid,
@@ -84,14 +96,13 @@ firebase.auth().getRedirectResult()
                 isActive: true,
                 createdOn: firebase.firestore.FieldValue.serverTimestamp(),
                 city: ''
-            }).then(() => {
-                alert('Google Sign-In successful!');
             });
         }
     })
     .catch(error => {
         if (error.code && error.code !== 'auth/popup-closed-by-user') {
             console.error('Google Sign-In redirect error:', error);
+            alert('Google Sign-In failed: ' + error.message);
         }
     });
 
