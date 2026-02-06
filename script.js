@@ -188,12 +188,17 @@ function signupUser() {
 }
 
 function logout() {
+    // Close profile modal first
+    const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
+    if (profileModal) profileModal.hide();
+    
     firebase.auth().signOut().then(() => {
         currentUser = null;
         updateAuthUI();
-        const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
-        if (profileModal) profileModal.hide();
         alert('Logged out successfully');
+    }).catch(error => {
+        console.error('Logout error:', error);
+        alert('Logout failed: ' + error.message);
     });
 }
 
@@ -306,18 +311,31 @@ function showAddresses() {
             let addressesHtml = '';
             snapshot.forEach(doc => {
                 const address = doc.data();
+                const addressId = doc.id;
                 const icon = address.addressType === 'Home' ? 'fa-home' : address.addressType === 'Work' ? 'fa-briefcase' : 'fa-map-marker-alt';
                 
                 addressesHtml += `
                     <div class="card mb-3">
                         <div class="card-body">
-                            <div class="d-flex align-items-start">
-                                <i class="fas ${icon} text-success fa-2x me-3"></i>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">${address.addressType || 'Address'}</h6>
-                                    <p class="mb-1">${address.name || ''}</p>
-                                    <p class="mb-1 text-muted">${address.address || ''}</p>
-                                    <p class="mb-0 text-muted"><i class="fas fa-phone"></i> ${address.phone || ''}</p>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex align-items-start flex-grow-1">
+                                    <i class="fas ${icon} text-success fa-2x me-3"></i>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">${address.addressType || 'Address'}</h6>
+                                        <p class="mb-1">${address.username || ''}</p>
+                                        <p class="mb-1 text-muted">${address.address || ''}</p>
+                                        <p class="mb-1 text-muted">${address.city || ''} ${address.postalCode ? '- ' + address.postalCode : ''}</p>
+                                        ${address.landmark ? `<p class="mb-1 text-muted"><i class="fas fa-flag"></i> ${address.landmark}</p>` : ''}
+                                        <p class="mb-0 text-muted"><i class="fas fa-phone"></i> ${address.mobile || ''}</p>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-success" onclick="editAddress('${addressId}')" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAddress('${addressId}')" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -334,6 +352,120 @@ function showAddresses() {
     
     const modal = new bootstrap.Modal(document.getElementById('addressesModal'));
     modal.show();
+}
+
+function showAddAddressForm() {
+    document.getElementById('address-form').reset();
+    document.getElementById('address-id').value = '';
+    document.getElementById('addAddressModalTitle').textContent = 'Add New Address';
+    document.getElementById('type-home').checked = true;
+    
+    const modal = new bootstrap.Modal(document.getElementById('addAddressModal'));
+    modal.show();
+}
+
+function editAddress(addressId) {
+    if (!currentUser) return;
+    
+    db.collection('Customer_address').doc(currentUser.uid).collection('addresses').doc(addressId).get()
+        .then(doc => {
+            if (!doc.exists) {
+                alert('Address not found');
+                return;
+            }
+            
+            const address = doc.data();
+            document.getElementById('address-id').value = addressId;
+            document.getElementById('address-username').value = address.username || '';
+            document.getElementById('address-mobile').value = address.mobile || '';
+            document.getElementById('address-address').value = address.address || '';
+            document.getElementById('address-city').value = address.city || '';
+            document.getElementById('address-postalcode').value = address.postalCode || '';
+            document.getElementById('address-landmark').value = address.landmark || '';
+            
+            const addressType = address.addressType || 'Home';
+            if (addressType === 'Home') document.getElementById('type-home').checked = true;
+            else if (addressType === 'Work') document.getElementById('type-work').checked = true;
+            else document.getElementById('type-other').checked = true;
+            
+            document.getElementById('addAddressModalTitle').textContent = 'Edit Address';
+            
+            const modal = new bootstrap.Modal(document.getElementById('addAddressModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error loading address:', error);
+            alert('Failed to load address');
+        });
+}
+
+function saveAddress() {
+    const form = document.getElementById('address-form');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    if (!currentUser) {
+        alert('Please login first');
+        return;
+    }
+    
+    const addressId = document.getElementById('address-id').value;
+    const addressType = document.querySelector('input[name="addressType"]:checked').value;
+    const username = document.getElementById('address-username').value.trim();
+    const mobile = document.getElementById('address-mobile').value.trim();
+    const address = document.getElementById('address-address').value.trim();
+    const city = document.getElementById('address-city').value.trim();
+    const postalCode = document.getElementById('address-postalcode').value.trim();
+    const landmark = document.getElementById('address-landmark').value.trim();
+    
+    const addressData = {
+        addressType: addressType,
+        username: username,
+        mobile: mobile,
+        address: address,
+        city: city,
+        postalCode: postalCode,
+        landmark: landmark,
+        email: currentUser.email || '',
+        isDefault: false,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    const addressRef = db.collection('Customer_address').doc(currentUser.uid).collection('addresses');
+    
+    const savePromise = addressId ? 
+        addressRef.doc(addressId).update(addressData) : 
+        addressRef.add(addressData);
+    
+    savePromise
+        .then(() => {
+            alert('Address saved successfully!');
+            const addModal = bootstrap.Modal.getInstance(document.getElementById('addAddressModal'));
+            if (addModal) addModal.hide();
+            showAddresses();
+        })
+        .catch(error => {
+            console.error('Error saving address:', error);
+            alert('Failed to save address: ' + error.message);
+        });
+}
+
+function deleteAddress(addressId) {
+    if (!currentUser) return;
+    
+    if (!confirm('Are you sure you want to delete this address?')) return;
+    
+    db.collection('Customer_address').doc(currentUser.uid).collection('addresses').doc(addressId).delete()
+        .then(() => {
+            alert('Address deleted successfully');
+            showAddresses();
+        })
+        .catch(error => {
+            console.error('Error deleting address:', error);
+            alert('Failed to delete address: ' + error.message);
+        });
 }
 
 function loadBanners() {
