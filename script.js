@@ -308,42 +308,45 @@ function showAddresses() {
                 return;
             }
             
-            let addressesHtml = '';
+            addressesContainer.innerHTML = '';
             snapshot.forEach(doc => {
                 const address = doc.data();
                 const addressId = doc.id;
                 const icon = address.addressType === 'Home' ? 'fa-home' : address.addressType === 'Work' ? 'fa-briefcase' : 'fa-map-marker-alt';
                 
-                addressesHtml += `
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="d-flex align-items-start flex-grow-1">
-                                    <i class="fas ${icon} text-success fa-2x me-3"></i>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">${address.addressType || 'Address'}</h6>
-                                        <p class="mb-1">${address.username || ''}</p>
-                                        <p class="mb-1 text-muted">${address.address || ''}</p>
-                                        <p class="mb-1 text-muted">${address.city || ''} ${address.postalCode ? '- ' + address.postalCode : ''}</p>
-                                        ${address.landmark ? `<p class="mb-1 text-muted"><i class="fas fa-flag"></i> ${address.landmark}</p>` : ''}
-                                        <p class="mb-0 text-muted"><i class="fas fa-phone"></i> ${address.mobile || ''}</p>
-                                    </div>
+                const card = document.createElement('div');
+                card.className = 'card mb-3';
+                card.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex align-items-start flex-grow-1">
+                                <i class="fas ${icon} text-success fa-2x me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${address.addressType || 'Address'}</h6>
+                                    <p class="mb-1">${address.username || ''}</p>
+                                    <p class="mb-1 text-muted">${address.address || ''}</p>
+                                    <p class="mb-1 text-muted">${address.city || ''} ${address.postalCode ? '- ' + address.postalCode : ''}</p>
+                                    ${address.landmark ? `<p class="mb-1 text-muted"><i class="fas fa-flag"></i> ${address.landmark}</p>` : ''}
+                                    <p class="mb-0 text-muted"><i class="fas fa-phone"></i> ${address.mobile || ''}</p>
                                 </div>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-success" onclick="editAddress('${addressId}')" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAddress('${addressId}')" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-success edit-btn" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger delete-btn" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
                 `;
+                
+                card.querySelector('.edit-btn').addEventListener('click', () => editAddress(addressId));
+                card.querySelector('.delete-btn').addEventListener('click', () => deleteAddress(addressId));
+                
+                addressesContainer.appendChild(card);
             });
-            
-            addressesContainer.innerHTML = addressesHtml;
         })
         .catch(error => {
             console.error('Error loading addresses:', error);
