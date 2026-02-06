@@ -816,10 +816,19 @@ function proceedToCheckout() {
 
 // Select saved address for checkout
 window.selectSavedAddress = function() {
-    if (!currentUser) return;
+    console.log('selectSavedAddress called');
+    
+    if (!currentUser) {
+        alert('Please login first');
+        return;
+    }
+    
+    console.log('Fetching addresses for user:', currentUser.uid);
     
     db.collection('Customer_address').doc(currentUser.uid).collection('addresses').get()
         .then(snapshot => {
+            console.log('Addresses found:', snapshot.size);
+            
             if (snapshot.empty) {
                 alert('No saved addresses found. Please add an address first.');
                 return;
@@ -829,9 +838,10 @@ window.selectSavedAddress = function() {
             snapshot.forEach(doc => {
                 const address = doc.data();
                 const icon = address.addressType === 'Home' ? 'fa-home' : address.addressType === 'Work' ? 'fa-briefcase' : 'fa-map-marker-alt';
+                const addressJson = JSON.stringify(address).replace(/'/g, '&apos;');
                 
                 addressesHtml += `
-                    <button type="button" class="list-group-item list-group-item-action select-address-btn" data-address='${JSON.stringify(address)}'>
+                    <button type="button" class="list-group-item list-group-item-action select-address-btn" data-address='${addressJson}'>
                         <div class="d-flex align-items-start">
                             <i class="fas ${icon} text-success fa-lg me-3 mt-1"></i>
                             <div class="flex-grow-1">
@@ -847,8 +857,13 @@ window.selectSavedAddress = function() {
             });
             addressesHtml += '</div>';
             
-            // Show address selection in a modal
-            const modalHtml = `
+            // Remove existing modal if any
+            const existingModal = document.getElementById('selectAddressModal');
+            if (existingModal) existingModal.remove();
+            
+            // Create modal
+            const modalDiv = document.createElement('div');
+            modalDiv.innerHTML = `
                 <div class="modal fade" id="selectAddressModal" tabindex="-1">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -864,17 +879,15 @@ window.selectSavedAddress = function() {
                 </div>
             `;
             
-            // Remove existing modal if any
-            const existingModal = document.getElementById('selectAddressModal');
-            if (existingModal) existingModal.remove();
-            
-            // Add new modal
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            document.body.appendChild(modalDiv.firstElementChild);
             
             // Add click handlers
             document.querySelectorAll('.select-address-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const address = JSON.parse(this.getAttribute('data-address'));
+                    console.log('Address selected');
+                    const addressJson = this.getAttribute('data-address');
+                    const address = JSON.parse(addressJson);
+                    
                     document.getElementById('customer-name').value = address.username || '';
                     document.getElementById('customer-phone').value = address.mobile || '';
                     document.getElementById('customer-address').value = `${address.address || ''}, ${address.city || ''} ${address.postalCode ? '- ' + address.postalCode : ''}`;
@@ -887,10 +900,11 @@ window.selectSavedAddress = function() {
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('selectAddressModal'));
             modal.show();
+            console.log('Modal shown');
         })
         .catch(error => {
             console.error('Error loading addresses:', error);
-            alert('Failed to load addresses');
+            alert('Failed to load addresses: ' + error.message);
         });
 };
 
@@ -1080,6 +1094,7 @@ function processOrder(customerName, customerPhone, customerAddress, paymentType,
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Loading Groczy website...');
+    console.log('Functions available:', typeof showAddAddressForm, typeof selectSavedAddress);
     loadBanners();
     loadCategories();
     loadProducts();
