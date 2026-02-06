@@ -1,4 +1,4 @@
-// Firebase configuration (replace with your actual config)
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyA2YHOWUAIiSP0O6RWKLr7pXzBbGFfeCGs",
   authDomain: "groczy-9474a.firebaseapp.com",
@@ -11,5 +11,5 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Get a reference to the Firestore database
+// Get Firestore database reference
 const db = firebase.firestore();
